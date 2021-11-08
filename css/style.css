@@ -323,10 +323,11 @@ body {
     font-size: 36px;
     border: none;
     background-color: transparent;
+    cursor: pointer;
 }
 
 .modal-body {
-    margin-bottom: 52px;
+    margin-bottom: 24px;
 }
 
 .food-row {
@@ -395,6 +396,19 @@ body {
 .footer-buttons {
     display: flex;
     align-items: center;
+}
+
+.error {
+    margin: 0;
+    visibility: hidden;
+    padding: 4px 10px;
+    border-radius: 5px;
+    background-color: crimson;
+    color: #f5f5f5;
+}
+
+.error.visible {
+    visibility: visible;
 }
 
 @media (max-width: 1366px) {

@@ -8,6 +8,9 @@
         <link rel="stylesheet" href="./css/normalize.css" />
         <link rel="stylesheet" href="./css/style.css" />
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap&subset=cyrillic" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+        <script defer src="js/wow.min.js"></script>
+        <script defer src="js/login.js"></script>
     </head>
     <body>
         <div class="container">
@@ -17,9 +20,9 @@
                 </a>
                 <input type="text" class="input input-address" placeholder="Адрес доставки">
                 <div class="buttons">
-                    <button class="button button-primary">
+                    <button class="button button-primary button-auth">
                         <img src="./img/user.svg" alt="user" class="button-icon">
-                        <span class="button-text">Войти</span>
+                        <span class="button-text" id="login-text">Войти</span>
                     </button>
                     <button class="button">
                         <img src="./img/shopping-cart.svg" alt="cart" class="button-icon">
@@ -171,5 +174,29 @@
                 </div>
             </div>
         </footer>
+        <div class="modal" id="auth-modal">
+            <div class="modal-dialog wow fadeInUp" data-wow-duration=".3s">
+                <div class="modal-header">
+                    <h3 class="modal-title">Авторизация</h3>
+                    <button class="close" onclick="toggleModalAuth()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="food-row">
+                        <span class="food-name">Логин:</span>
+                        <strong class="food-price"><input id="login"></strong>
+                    </div>
+                    <div class="food-row">
+                        <span class="food-name">Пароль:</span>
+                        <strong class="food-price"><input type="password" id="password"></strong>
+                    </div>
+                    <p class="error" id="auth-error">Check input login and password</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="footer-buttons">
+                        <button class="button button-primary button-login">Войти</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
