@@ -411,6 +411,10 @@ body {
     visibility: visible;
 }
 
+.form__input {
+    border-style: solid;
+}
+
 @media (max-width: 1366px) {
     .container {
         max-width: 960px;

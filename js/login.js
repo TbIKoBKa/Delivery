@@ -13,16 +13,31 @@ let authData = JSON.parse(localStorage.getItem('authData'))
 let users = [
     { login: "admin", password: "123" },
 ];
+let openStatus = false;
 
 const toggleModalAuth = () => {
     modalAuth.classList.toggle('active');
+    openStatus = !openStatus;
+
+    inputLogin.style.borderColor = '';
+    inputLogin.value = '';
+    inputPassword.style.borderColor = '';
+    inputPassword.value = '';
+
+    document.body.style.overflow = openStatus ? 'hidden' : 'visible';
 }
 
 const toggleAuthMessageError = () => {
     messageAuthError.classList.toggle('visible')
 }
 
-buttonAuth.addEventListener('click', function () {
+modalAuth.addEventListener('click', ({ target }) => {
+    if (target.id === modalAuth.id) {
+        toggleModalAuth()
+    }
+})
+
+buttonAuth.addEventListener('click', () => {
     if (authStatus === false) {
         toggleModalAuth();
     } else {
@@ -47,7 +62,9 @@ buttonLogin.addEventListener('click', () => {
             localStorage.setItem('authData', JSON.stringify(user));
             authStatus = true;
             document.getElementById('login-text').innerText = inputLogin.value;
+            
             toggleModalAuth();
+
             return true
         }
 
@@ -57,6 +74,13 @@ buttonLogin.addEventListener('click', () => {
     if (!isExist) {
         toggleAuthMessageError()
 
-        setTimeout(() => toggleAuthMessageError(), 3000)
+        !inputLogin.value && (inputLogin.style.borderColor = '#C10000')
+        !inputPassword.value && (inputPassword.style.borderColor = '#C10000')
+
+        setTimeout(() => {
+            toggleAuthMessageError()
+            inputLogin.style.borderColor = 'initial'
+            inputPassword.style.borderColor = 'initial'
+        }, 3000)
     }
 })
