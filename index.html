@@ -10,7 +10,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap&subset=cyrillic" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
         <script defer src="js/wow.min.js"></script>
-        <script defer src="js/login.js"></script>
+        <script defer src="js/index.js"></script>
     </head>
     <body>
         <div class="container">
@@ -42,117 +42,7 @@
                         <h2 class="section-title">Рестораны</h2>
                         <input type="text" class="input input-search" placeholder="Поиск блюд и ресторанов">
                     </div>
-                    <div class="cards">
-    
-                        <a href="./restaurant.html" class="card">
-                            <img src="./img/pizzaplus.jpg" alt="image" class="card-image">
-                            <div class="card-text">
-                                <div class="card-heading">
-                                    <h3 class="card-title">Пицца плюс</h3>
-                                    <span class="card-tag tag">50 мин</span>
-                                </div>
-                                <div class="card-info">
-                                    <div class="rating">
-                                        <img src="./img/star.svg" alt="rating" class="rating-star">
-                                        4.5
-                                    </div>
-                                    <div class="price">От 900 ₽</div>
-                                    <div class="category">Пицца</div>
-                                </div>
-                            </div>
-                        </a>
-    
-                        <a href="./restaurant.html" class="card">
-                            <img src="./img/tanuki.jpg" alt="image" class="card-image">
-                            <div class="card-text">
-                                <div class="card-heading">
-                                    <h3 class="card-title">Тануки</h3>
-                                    <span class="card-tag tag">50 мин</span>
-                                </div>
-                                <div class="card-info">
-                                    <div class="rating">
-                                        <img src="./img/star.svg" alt="rating" class="rating-star">
-                                        4.5
-                                    </div>
-                                    <div class="price">От 900 ₽</div>
-                                    <div class="category">Пицца</div>
-                                </div>
-                            </div>
-                        </a>
-    
-                        <a href="./restaurant.html" class="card">
-                            <img src="./img/foodband.jpg" alt="image" class="card-image">
-                            <div class="card-text">
-                                <div class="card-heading">
-                                    <h3 class="card-title">FoodBand</h3>
-                                    <span class="card-tag tag">50 мин</span>
-                                </div>
-                                <div class="card-info">
-                                    <div class="rating">
-                                        <img src="./img/star.svg" alt="rating" class="rating-star">
-                                        4.5
-                                    </div>
-                                    <div class="price">От 900 ₽</div>
-                                    <div class="category">Пицца</div>
-                                </div>
-                            </div>
-                        </a>
-    
-                        <a href="./restaurant.html" class="card">
-                            <img src="./img/jadinapizza.jpg" alt="image" class="card-image">
-                            <div class="card-text">
-                                <div class="card-heading">
-                                    <h3 class="card-title">Жадина-пицца</h3>
-                                    <span class="card-tag tag">50 мин</span>
-                                </div>
-                                <div class="card-info">
-                                    <div class="rating">
-                                        <img src="./img/star.svg" alt="rating" class="rating-star">
-                                        4.5
-                                    </div>
-                                    <div class="price">От 900 ₽</div>
-                                    <div class="category">Пицца</div>
-                                </div>
-                            </div>
-                        </a>
-    
-                        <a href="./restaurant.html" class="card">
-                            <img src="./img/tochkaedi.jpg" alt="image" class="card-image">
-                            <div class="card-text">
-                                <div class="card-heading">
-                                    <h3 class="card-title">Точка еды</h3>
-                                    <span class="card-tag tag">50 мин</span>
-                                </div>
-                                <div class="card-info">
-                                    <div class="rating">
-                                        <img src="./img/star.svg" alt="rating" class="rating-star">
-                                        4.5
-                                    </div>
-                                    <div class="price">От 900 ₽</div>
-                                    <div class="category">Пицца</div>
-                                </div>
-                            </div>
-                        </a>
-    
-                        <a href="./restaurant.html" class="card">
-                            <img src="./img/pizzaburger.jpg" alt="image" class="card-image">
-                            <div class="card-text">
-                                <div class="card-heading">
-                                    <h3 class="card-title">PizzaBurger</h3>
-                                    <span class="card-tag tag">50 мин</span>
-                                </div>
-                                <div class="card-info">
-                                    <div class="rating">
-                                        <img src="./img/star.svg" alt="rating" class="rating-star">
-                                        4.5
-                                    </div>
-                                    <div class="price">От 900 ₽</div>
-                                    <div class="category">Пицца</div>
-                                </div>
-                            </div>
-                        </a>
-    
-                    </div>
+                    <div class="cards" id="cards"></div>
                 </section>
             </div>
         </main>
