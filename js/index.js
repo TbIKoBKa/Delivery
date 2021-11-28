@@ -23,6 +23,7 @@ const inputPassword = document.querySelector('#password')
 const messageAuthError = document.querySelector('#auth-error')
 const cardsWrapper = document.querySelector('#cards')
 const promoSwiperContainer = document.querySelector('.promo-swiper-container')
+const restaurantsHeading = document.querySelector('.section-heading.restaurants')
 
 let authStatus = JSON.parse(localStorage.getItem('authStatus'))
 let authData = JSON.parse(localStorage.getItem('authData'))
@@ -56,7 +57,7 @@ function createRestaurant(restaurant) {
     } = restaurant;
 
     cardsWrapper.insertAdjacentHTML('beforeend', `
-        <a data-products="${products}" class="card" onclick="validateAuthorizeUser(event)">
+        <a data-products="${products}" data-name="${name}" data-price="${price}" data-stars="${stars}" data-kitchen="${kitchen}" class="card">
             <img src="${image}" alt="image" class="card-image">
             <div class="card-text">
                 <div class="card-heading">
@@ -106,22 +107,42 @@ const createGood = (good, index) => {
     `)
 }
 
+const setRestaurantHeading = ({ name, stars, price, kitchen }) => {
+    restaurantsHeading.innerHTML = ''
+
+    restaurantsHeading.insertAdjacentHTML('beforeend', `
+        <h2 class="section-title">${name}</h2>
+        <div class="card-info">
+            <div class="rating">
+                <img src="./img/star.svg" alt="rating" class="rating-star">
+                ${stars}
+            </div>
+            <div class="price">От ${price} ₽</div>
+            <div class="category">${kitchen}</div>
+        </div>
+    `)
+}
+
 const openGoods = (event) => {
     event.preventDefault()
     const restaurant = event.target.closest('.card');
 
-    console.log('openGoods');
+    if (authStatus && restaurant) {
+        if (!goodsVisible) {
+            const { name, price, stars, kitchen } = restaurant.dataset
 
-    if (authStatus && !goodsVisible && restaurant) {
-        promoSwiperContainer.classList.add('hide');
-        cardsWrapper.innerHTML = ''
-
-        getData(`./db/${restaurant.dataset.products}`).then((data) => {
+            promoSwiperContainer.classList.add('hide');
             cardsWrapper.innerHTML = ''
-            goodsVisible = !goodsVisible
 
-            data.forEach(createGood);
-        });
+            setRestaurantHeading({ name, price, stars, kitchen })
+
+            getData(`./db/${restaurant.dataset.products}`).then((data) => {
+                cardsWrapper.innerHTML = ''
+                goodsVisible = !goodsVisible
+
+                data.forEach(createGood);
+            });
+        }
     }
     else {
         toggleModalAuth();
@@ -204,14 +225,6 @@ buttonLogin.addEventListener('click', () => {
         }, 3000)
     }
 })
-
-const validateAuthorizeUser = (event) => {
-    event.preventDefault()
-
-    if (!authData?.login) {
-        toggleModalAuth()
-    }
-}
 
 cardsWrapper.addEventListener('click', (event) => {
     openGoods(event)

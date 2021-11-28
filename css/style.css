@@ -139,6 +139,7 @@ body {
     margin-bottom: 30px;
     flex-basis: 32%;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .card-image {
