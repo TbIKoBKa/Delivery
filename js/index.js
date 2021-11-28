@@ -1,5 +1,20 @@
 new WOW().init()
 
+new Swiper('.swiper-container', {
+    sliderPerView: 1,
+    loop: true,
+    autoplay: true,
+    grabCursor: true,
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
+    pagination: {
+        el: '.swiper-pagination',
+    },
+})
+
+const logo = document.querySelector('.logo')
 const buttonAuth = document.querySelector('.button-auth')
 const buttonLogin = document.querySelector('.button-login')
 const modalAuth = document.querySelector('#auth-modal')
@@ -7,92 +22,116 @@ const inputLogin = document.querySelector('#login')
 const inputPassword = document.querySelector('#password')
 const messageAuthError = document.querySelector('#auth-error')
 const cardsWrapper = document.querySelector('#cards')
+const promoSwiperContainer = document.querySelector('.promo-swiper-container')
 
 let authStatus = JSON.parse(localStorage.getItem('authStatus'))
 let authData = JSON.parse(localStorage.getItem('authData'))
+let restaurants = []
+let openStatus = false;
+let goodsVisible = false;
 
 let users = [
     { login: "admin", password: "123" },
 ];
-let openStatus = false;
 
-const mockRestaurants = [
-    {
-        href: './restaurant.html',
-        img: './img/pizzaplus.jpg',
-        title: 'Пицца плюс',
-        tag: '50 мин',
-        rating: '4.5',
-        minPrice: 900,
-        category: 'Пицца'
-    },
-    {
-        href: './restaurant.html',
-        img: './img/tanuki.jpg',
-        title: 'Тануки',
-        tag: '50 мин',
-        rating: '4.5',
-        minPrice: 900,
-        category: 'Пицца'
-    },
-    {
-        href: './restaurant.html',
-        img: './img/foodband.jpg',
-        title: 'FoodBand',
-        tag: '50 мин',
-        rating: '4.5',
-        minPrice: 900,
-        category: 'Пицца'
-    },
-    {
-        href: './restaurant.html',
-        img: './img/jadinapizza.jpg',
-        title: 'Жадина-пицца',
-        tag: '50 мин',
-        rating: '4.5',
-        minPrice: 900,
-        category: 'Пицца'
-    },
-    {
-        href: './restaurant.html',
-        img: './img/tochkaedi.jpg',
-        title: 'Точка еды',
-        tag: '50 мин',
-        rating: '4.5',
-        minPrice: 900,
-        category: 'Пицца'
-    },
-    {
-        href: './restaurant.html',
-        img: './img/pizzaburger.jpg',
-        title: 'PizzaBurger',
-        tag: '50 мин',
-        rating: '4.5',
-        minPrice: 900,
-        category: 'Пицца'
-    },
-]
+const getData = async (url, container) => {
+    const response = await fetch(url)
 
-mockRestaurants.forEach((mock) => {
+    if (!response.ok) {
+        throw new Error(`Error! Address: ${url}. Status code: ${response.status}!`)
+    }
+
+    return await response.json()
+}
+
+function createRestaurant(restaurant) {
+    const {
+        image,
+        kitchen,
+        name,
+        price,
+        stars,
+        products,
+        time_of_delivery: timeOfDelivery
+    } = restaurant;
+
     cardsWrapper.insertAdjacentHTML('beforeend', `
-        <a href="${mock.href}" class="card" onclick="validateAuthorizeUser(event)">
-            <img src="${mock.img}" alt="image" class="card-image">
+        <a data-products="${products}" class="card" onclick="validateAuthorizeUser(event)">
+            <img src="${image}" alt="image" class="card-image">
             <div class="card-text">
                 <div class="card-heading">
-                    <h3 class="card-title">${mock.title}</h3>
-                    <span class="card-tag tag">${mock.tag}</span>
+                    <h3 class="card-title">${name}</h3>
+                    <span class="card-tag tag">${timeOfDelivery}</span>
                 </div>
                 <div class="card-info">
                     <div class="rating">
                         <img src="./img/star.svg" alt="rating" class="rating-star">
-                        ${mock.rating}
+                        ${stars}
                     </div>
-                    <div class="price">От ${mock.minPrice} ₽</div>
-                    <div class="category">${mock.category}</div>
+                    <div class="price">От ${price} ₽</div>
+                    <div class="category">${kitchen}</div>
                 </div>
             </div>
         </a>
     `)
+}
+
+const createGood = (good, index) => {
+    const {
+        description,
+        image,
+        name,
+        price
+    } = good;
+
+    cardsWrapper.insertAdjacentHTML('beforeend', `
+        <div class="card wow fadeInRightBig" data-wow-duration="2s" data-wow-delay="${0.2 * index}s">
+            <img src="${image}" alt="image" class="card-image">
+            <div class="card-text">
+                <div class="card-heading">
+                    <h3 class="card-title card-title-reg">${name}</h3>
+                </div>
+                <div class="card-info">
+                    <div class="ingredients">${description}</div>
+                </div>
+                <div class="card-buttons">
+                    <button class="button button-primary">
+                        <span class="button-card-text">В корзину</span>
+                        <img class="button-card-image" src="img/shopping-cart-white.svg" alt="cart">
+                    </button>
+                    <strong class="card-price-bold">${price} ₽</strong>
+                </div>
+            </div>
+        </div>
+    `)
+}
+
+const openGoods = (event) => {
+    event.preventDefault()
+    const restaurant = event.target.closest('.card');
+
+    console.log('openGoods');
+
+    if (authStatus && !goodsVisible && restaurant) {
+        promoSwiperContainer.classList.add('hide');
+        cardsWrapper.innerHTML = ''
+
+        getData(`./db/${restaurant.dataset.products}`).then((data) => {
+            cardsWrapper.innerHTML = ''
+            goodsVisible = !goodsVisible
+
+            data.forEach(createGood);
+        });
+    }
+    else {
+        toggleModalAuth();
+    }
+}
+
+getData('./db/partners.json').then((restaurants) => {
+    cardsWrapper.innerHTML = ''
+
+    restaurants.forEach(createRestaurant)
 })
 
 const toggleModalAuth = () => {
@@ -169,11 +208,16 @@ buttonLogin.addEventListener('click', () => {
 const validateAuthorizeUser = (event) => {
     event.preventDefault()
 
-    console.log(authData)
-
-    if (authData?.login) {
-        console.log(window.location.href = event.currentTarget.href)
-    } else {
+    if (!authData?.login) {
         toggleModalAuth()
     }
 }
+
+cardsWrapper.addEventListener('click', (event) => {
+    openGoods(event)
+})
+
+logo.addEventListener('click', () => {
+    promoSwiperContainer.classList.remove('hide');
+    goodsVisible = false;
+})
