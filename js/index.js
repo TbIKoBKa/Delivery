@@ -25,6 +25,12 @@ const cardsWrapper = document.querySelector('#cards')
 const promoSwiperContainer = document.querySelector('.promo-swiper-container')
 const restaurantsHeading = document.querySelector('.section-heading.restaurants')
 
+const inputSearch = document.querySelector('.input-search')
+
+const cartBtn = document.querySelector('#cart-button')
+const cartModal = document.querySelector('#cart-modal')
+const cartModalClose = document.querySelector('#cart-modal-close')
+
 let authStatus = JSON.parse(localStorage.getItem('authStatus'))
 let authData = JSON.parse(localStorage.getItem('authData'))
 let restaurants = []
@@ -35,7 +41,11 @@ let users = [
     { login: "admin", password: "123" },
 ];
 
-const getData = async (url, container) => {
+const toggleModal = () => {
+    cartModal.classList.toggle('active')
+}
+
+const getData = async (url) => {
     const response = await fetch(url)
 
     if (!response.ok) {
@@ -113,11 +123,15 @@ const setRestaurantHeading = ({ name, stars, price, kitchen }) => {
     restaurantsHeading.insertAdjacentHTML('beforeend', `
         <h2 class="section-title">${name}</h2>
         <div class="card-info">
-            <div class="rating">
-                <img src="./img/star.svg" alt="rating" class="rating-star">
-                ${stars}
-            </div>
-            <div class="price">От ${price} ₽</div>
+            ${stars
+                ? `
+                    <div class="rating">
+                        <img src="./img/star.svg" alt="rating" class="rating-star">
+                        ${stars}
+                    </div>
+                `
+                : ''}
+            ${price ? `<div class="price">От ${price} ₽</div>` : ''}
             <div class="category">${kitchen}</div>
         </div>
     `)
@@ -149,12 +163,6 @@ const openGoods = (event) => {
     }
 }
 
-getData('./db/partners.json').then((restaurants) => {
-    cardsWrapper.innerHTML = ''
-
-    restaurants.forEach(createRestaurant)
-})
-
 const toggleModalAuth = () => {
     modalAuth.classList.toggle('active');
     openStatus = !openStatus;
@@ -170,6 +178,40 @@ const toggleModalAuth = () => {
 const toggleAuthMessageError = () => {
     messageAuthError.classList.toggle('visible')
 }
+
+inputSearch.addEventListener('keypress', (event) => {
+    if (event.charCode === 13) {
+        getData('./db/partners.json')
+            .then((data) => data.map((partner) => partner.products))
+            .then((links) => {
+                promoSwiperContainer.classList.add('hide');
+                cardsWrapper.innerHTML = ''
+                goodsVisible = true
+
+                setRestaurantHeading({ name: 'Результаты поиска', kitchen: 'Разная' })
+
+                links.forEach((link) => {
+                    getData(`./db/${link}`).then((data) => {
+                        goodsVisible = !goodsVisible
+
+                        data
+                            .filter((prod) => prod.name.toLowerCase()
+                            .includes(inputSearch.value.toLowerCase()))
+                            .forEach(createGood);
+                    })
+                })
+            })
+    }
+})
+
+getData('./db/partners.json').then((restaurants) => {
+    cardsWrapper.innerHTML = ''
+
+    restaurants.forEach(createRestaurant)
+})
+
+cartBtn.addEventListener('click', toggleModal)
+cartModalClose.addEventListener('click', toggleModal)
 
 modalAuth.addEventListener('click', ({ target }) => {
     if (target.id === modalAuth.id) {
