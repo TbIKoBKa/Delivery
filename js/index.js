@@ -1,4 +1,5 @@
 new WOW().init()
+const CART_TOKEN = 'cart'
 
 new Swiper('.swiper-container', {
     sliderPerView: 1,
@@ -24,12 +25,21 @@ const messageAuthError = document.querySelector('#auth-error')
 const cardsWrapper = document.querySelector('#cards')
 const promoSwiperContainer = document.querySelector('.promo-swiper-container')
 const restaurantsHeading = document.querySelector('.section-heading.restaurants')
-
 const inputSearch = document.querySelector('.input-search')
 
+const cart = localStorage.getItem(CART_TOKEN)
+    ? {
+        products: JSON.parse(localStorage.getItem(CART_TOKEN)),
+        totalPrice: JSON.parse(localStorage.getItem(CART_TOKEN)).reduce((total, { price, amount }) => total + price * amount, 0)
+    } : {
+    products: [],
+    totalPrice: 0,
+}
 const cartBtn = document.querySelector('#cart-button')
 const cartModal = document.querySelector('#cart-modal')
 const cartModalClose = document.querySelector('#cart-modal-close')
+const cartWrapper = document.querySelector('#cart-modal .modal-dialog .modal-body')
+const cartPrice = document.querySelector('#cart-price')
 
 let authStatus = JSON.parse(localStorage.getItem('authStatus'))
 let authData = JSON.parse(localStorage.getItem('authData'))
@@ -41,10 +51,6 @@ let users = [
     { login: "admin", password: "123" },
 ];
 
-const toggleModal = () => {
-    cartModal.classList.toggle('active')
-}
-
 const getData = async (url) => {
     const response = await fetch(url)
 
@@ -55,7 +61,7 @@ const getData = async (url) => {
     return await response.json()
 }
 
-function createRestaurant(restaurant) {
+const createRestaurant = (restaurant) => {
     const {
         image,
         kitchen,
@@ -89,6 +95,7 @@ function createRestaurant(restaurant) {
 
 const createGood = (good, index) => {
     const {
+        id,
         description,
         image,
         name,
@@ -96,7 +103,7 @@ const createGood = (good, index) => {
     } = good;
 
     cardsWrapper.insertAdjacentHTML('beforeend', `
-        <div class="card wow fadeInRightBig" data-wow-duration="2s" data-wow-delay="${0.2 * index}s">
+        <div class="card wow fadeInRightBig" data-id="${id}" data-name="${name}" data-price="${price}" data-wow-duration="0.5s" data-wow-delay="${0.2 * index}s">
             <img src="${image}" alt="image" class="card-image">
             <div class="card-text">
                 <div class="card-heading">
@@ -112,6 +119,27 @@ const createGood = (good, index) => {
                     </button>
                     <strong class="card-price-bold">${price} ₽</strong>
                 </div>
+            </div>
+        </div>
+    `)
+}
+
+const createCartItem = (product) => {
+    const {
+        id,
+        name,
+        price,
+        amount,
+    } = product;
+
+    cartWrapper.insertAdjacentHTML('beforeend', `
+        <div class="food-row" data-id="${id}" >
+            <span class="food-name">${name}</span>
+            <strong class="food-price">${price} ₽</strong>
+            <div class="food-counter">
+                <button class="counter-button">-</button>
+                <span class="counter">${amount}</span>
+                <button class="counter-button">+</button>
             </div>
         </div>
     `)
@@ -141,8 +169,8 @@ const openGoods = (event) => {
     event.preventDefault()
     const restaurant = event.target.closest('.card');
 
-    if (authStatus && restaurant) {
-        if (!goodsVisible) {
+    if (authStatus) {
+        if (restaurant && !goodsVisible) {
             const { name, price, stars, kitchen } = restaurant.dataset
 
             promoSwiperContainer.classList.add('hide');
@@ -179,100 +207,171 @@ const toggleAuthMessageError = () => {
     messageAuthError.classList.toggle('visible')
 }
 
-inputSearch.addEventListener('keypress', (event) => {
-    if (event.charCode === 13) {
-        getData('./db/partners.json')
-            .then((data) => data.map((partner) => partner.products))
-            .then((links) => {
-                promoSwiperContainer.classList.add('hide');
-                cardsWrapper.innerHTML = ''
-                goodsVisible = true
-
-                setRestaurantHeading({ name: 'Результаты поиска', kitchen: 'Разная' })
-
-                links.forEach((link) => {
-                    getData(`./db/${link}`).then((data) => {
-                        goodsVisible = !goodsVisible
-
-                        data
-                            .filter((prod) => prod.name.toLowerCase()
-                            .includes(inputSearch.value.toLowerCase()))
-                            .forEach(createGood);
-                    })
-                })
-            })
-    }
-})
-
-getData('./db/partners.json').then((restaurants) => {
-    cardsWrapper.innerHTML = ''
-
-    restaurants.forEach(createRestaurant)
-})
-
-cartBtn.addEventListener('click', toggleModal)
-cartModalClose.addEventListener('click', toggleModal)
-
-modalAuth.addEventListener('click', ({ target }) => {
-    if (target.id === modalAuth.id) {
-        toggleModalAuth()
-    }
-})
-
-buttonAuth.addEventListener('click', () => {
-    if (authStatus === false) {
-        toggleModalAuth();
-    } else {
-        if (confirm('Вы хотите разлогиниться?') === true) {
-            localStorage.setItem('authStatus', false);
-            localStorage.setItem('authData', null);
-            authStatus = false;
-            authData = null;
-            document.getElementById('login-text').innerText = "Войти";
-        }
-    }
-})
-
-if (authData !== null) {
-    document.getElementById('login-text').innerText = authData.login;
+const toggleModalCart = () => {
+    cartModal.classList.toggle('active')
 }
 
-buttonLogin.addEventListener('click', () => {
-    const isExist = users.some((user) => {
-        if (user.login === inputLogin.value && user.password === inputPassword.value) {
-            localStorage.setItem('authStatus', true);
-            localStorage.setItem('authData', JSON.stringify(user));
-            authData = user
-            authStatus = true;
-            document.getElementById('login-text').innerText = inputLogin.value;
-            
-            toggleModalAuth();
+(() => {
+    inputSearch.addEventListener('keypress', (event) => {
+        if (event.charCode === 13) {
+            getData('./db/partners.json')
+                .then((data) => data.map((partner) => partner.products))
+                .then((links) => {
+                    promoSwiperContainer.classList.add('hide');
+                    cardsWrapper.innerHTML = ''
+                    goodsVisible = true
 
-            return true
+                    setRestaurantHeading({ name: 'Результаты поиска', kitchen: 'Разная' })
+
+                    links.forEach((link) => {
+                        getData(`./db/${link}`).then((data) => {
+                            goodsVisible = !goodsVisible
+
+                            data
+                                .filter((prod) => prod.name.toLowerCase()
+                                    .includes(inputSearch.value.toLowerCase()))
+                                .forEach(createGood);
+                        })
+                    })
+                })
         }
-
-        return false
     })
 
-    if (!isExist) {
-        toggleAuthMessageError()
+    cartBtn.addEventListener('click', () => {
+        cart.products.forEach(createCartItem)
 
-        !inputLogin.value && (inputLogin.style.borderColor = '#C10000')
-        !inputPassword.value && (inputPassword.style.borderColor = '#C10000')
+        toggleModalCart()
+    })
 
-        setTimeout(() => {
+    cartModal.addEventListener('click', ({ target }) => {
+        if (
+            target.id === cartModal.id
+            || target === cartModalClose
+            || (target.classList.contains('button') && target.innerHTML === 'Отмена')
+        ) {
+            toggleModalCart()
+
+            cartWrapper.innerHTML = ''
+        } else if (target.classList.contains('counter-button')) {
+            const { id } = target.closest('.food-row').dataset
+
+            cart.products = cart.products.map((product) => {
+                if (product.id === id) {
+                    if (target.innerHTML === '+') {
+                        return { ...product, amount: product.amount + 1 }
+                    } else {
+                        return product.amount - 1 > 0 ? { ...product, amount: product.amount - 1 } : null
+                    }
+                }
+
+                return product
+            })
+            cart.products = cart.products.filter((product) => product)
+            localStorage.setItem(CART_TOKEN, JSON.stringify(cart.products))
+
+            cartWrapper.innerHTML = ''
+            cart.products.forEach(createCartItem)
+            cartPrice.innerHTML = cart.products.reduce((total, { price, amount }) => total + price * amount, 0) + ' ₽'
+        }
+    })
+
+    modalAuth.addEventListener('click', ({ target }) => {
+        if (target.id === modalAuth.id) {
+            toggleModalAuth()
+        }
+    })
+
+    buttonAuth.addEventListener('click', () => {
+        if (authStatus === false) {
+            toggleModalAuth();
+        } else {
+            if (confirm('Вы хотите разлогиниться?') === true) {
+                localStorage.setItem('authStatus', false);
+                localStorage.setItem('authData', null);
+                authStatus = false;
+                authData = null;
+                document.getElementById('login-text').innerText = "Войти";
+            }
+        }
+    })
+
+    buttonLogin.addEventListener('click', () => {
+        const isExist = users.some((user) => {
+            if (user.login === inputLogin.value && user.password === inputPassword.value) {
+                localStorage.setItem('authStatus', true);
+                localStorage.setItem('authData', JSON.stringify(user));
+                authData = user
+                authStatus = true;
+                document.getElementById('login-text').innerText = inputLogin.value;
+
+                toggleModalAuth();
+
+                return true
+            }
+
+            return false
+        })
+
+        if (!isExist) {
             toggleAuthMessageError()
-            inputLogin.style.borderColor = 'initial'
-            inputPassword.style.borderColor = 'initial'
-        }, 3000)
+
+            !inputLogin.value && (inputLogin.style.borderColor = '#C10000')
+            !inputPassword.value && (inputPassword.style.borderColor = '#C10000')
+
+            setTimeout(() => {
+                toggleAuthMessageError()
+                inputLogin.style.borderColor = 'initial'
+                inputPassword.style.borderColor = 'initial'
+            }, 3000)
+        }
+    })
+
+    cardsWrapper.addEventListener('click', (event) => {
+        const { target: { classList } } = event
+
+        if (!classList.contains('cards')) {
+            if (classList.contains('button-card-text') || classList.contains('button-card-image') || classList.contains('button')) {
+                const { id, name, price } = event.target.closest('.card').dataset;
+                let exist = false
+
+                cart.products = cart.products.map((product) => {
+                    if (product.id === id) {
+                        exist = true
+
+                        return { ...product, amount: product.amount + 1 }
+                    }
+
+                    return product
+                })
+
+                if (!exist) {
+                    cart.products.push({ id, name, price, amount: 1 })
+                }
+
+                localStorage.setItem(CART_TOKEN, JSON.stringify(cart.products))
+
+                cart.totalPrice += parseInt(price)
+                cartPrice.innerHTML = cart.totalPrice + ' ₽'
+            } else {
+                openGoods(event)
+            }
+        }
+    })
+
+    logo.addEventListener('click', () => {
+        promoSwiperContainer.classList.remove('hide');
+        goodsVisible = false;
+    })
+
+    if (authData !== null) {
+        document.getElementById('login-text').innerText = authData.login;
     }
-})
 
-cardsWrapper.addEventListener('click', (event) => {
-    openGoods(event)
-})
+    getData('./db/partners.json').then((restaurants) => {
+        cardsWrapper.innerHTML = ''
 
-logo.addEventListener('click', () => {
-    promoSwiperContainer.classList.remove('hide');
-    goodsVisible = false;
-})
+        restaurants.forEach(createRestaurant)
+    })
+
+    cartPrice.innerHTML = cart.totalPrice + ' ₽'
+})()
